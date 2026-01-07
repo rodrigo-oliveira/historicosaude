@@ -1,0 +1,150 @@
+services:
+  # PostgreSQL Database para agendamento-service
+  postgres-agendamento:
+    image: postgres:15-alpine
+    container_name: postgres-agendamento
+    environment:
+      POSTGRES_DB: historicosaude_agendamento
+      POSTGRES_USER: historicosaude
+      POSTGRES_PASSWORD: historicosaude
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_agendamento_data:/var/lib/postgresql/data
+    networks:
+      - historicosaude-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U historicosaude -d historicosaude_agendamento"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # PostgreSQL Database para historico-service
+  postgres-historico:
+    image: postgres:15-alpine
+    container_name: postgres-historico
+    environment:
+      POSTGRES_DB: historicosaude_historico
+      POSTGRES_USER: historicosaude
+      POSTGRES_PASSWORD: historicosaude
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres_historico_data:/var/lib/postgresql/data
+    networks:
+      - historicosaude-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U historicosaude -d historicosaude_historico"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # RabbitMQ Message Broker
+  rabbitmq:
+    image: rabbitmq:3-management-alpine
+    container_name: rabbitmq-historicosaude
+    environment:
+      RABBITMQ_DEFAULT_USER: guest
+      RABBITMQ_DEFAULT_PASS: guest
+    ports:
+      - "5672:5672"      # AMQP port
+      - "15672:15672"    # Management UI
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+    networks:
+      - historicosaude-network
+    healthcheck:
+      test: rabbitmq-diagnostics -q ping
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Service A - Agendamento Service (REST + Security)
+  agendamento-service:
+    build:
+      context: ./agendamento-service
+      dockerfile: Dockerfile
+    container_name: agendamento-service
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres-agendamento:5432/historicosaude_agendamento
+      SPRING_DATASOURCE_USERNAME: historicosaude
+      SPRING_DATASOURCE_PASSWORD: historicosaude
+      SPRING_RABBITMQ_HOST: rabbitmq
+      SPRING_RABBITMQ_PORT: 5672
+      SPRING_RABBITMQ_USERNAME: guest
+      SPRING_RABBITMQ_PASSWORD: guest
+      JWT_SECRET: my-secret-key-historicosaude-12345
+      JWT_EXPIRATION_TIME: 86400000
+    ports:
+      - "8080:8080"
+    depends_on:
+      postgres-agendamento:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    networks:
+      - historicosaude-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/autenticacao/entrar"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # Service B - Notificacoes Service (Worker)
+  notificacoes-service:
+    build:
+      context: ./notificacoes-service
+      dockerfile: Dockerfile
+    container_name: notificacoes-service
+    environment:
+      SPRING_RABBITMQ_HOST: rabbitmq
+      SPRING_RABBITMQ_PORT: 5672
+      SPRING_RABBITMQ_USERNAME: guest
+      SPRING_RABBITMQ_PASSWORD: guest
+    ports:
+      - "8081:8081"
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+    networks:
+      - historicosaude-network
+
+  # Service C - Historico Service (GraphQL)
+  historico-service:
+    build:
+      context: ./historico-service
+      dockerfile: Dockerfile
+    container_name: historico-service
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres-historico:5432/historicosaude_historico
+      SPRING_DATASOURCE_USERNAME: historicosaude
+      SPRING_DATASOURCE_PASSWORD: historicosaude
+      SPRING_RABBITMQ_HOST: rabbitmq
+      SPRING_RABBITMQ_PORT: 5672
+      SPRING_RABBITMQ_USERNAME: guest
+      SPRING_RABBITMQ_PASSWORD: guest
+      JWT_SECRET: my-secret-key-historicosaude-12345
+      JWT_EXPIRATION_TIME: 86400000
+    ports:
+      - "8082:8082"
+    depends_on:
+      postgres-historico:
+        condition: service_healthy
+    networks:
+      - historicosaude-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8082/graphiql"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+networks:
+  historicosaude-network:
+    driver: bridge
+
+volumes:
+  postgres_agendamento_data:
+  postgres_historico_data:
+  rabbitmq_data:

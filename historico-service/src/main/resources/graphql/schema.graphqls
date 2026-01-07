@@ -1,0 +1,19 @@
+type Query {
+    todasAsConsultas(limit: Int, offset: Int): [Consulta!]!
+    consultasPorCpf(cpf: String!): [Consulta!]!
+    consultasPorMedico(medico: String!): [Consulta!]!
+}
+
+type Consulta {
+    id: ID!
+    cpfPaciente: String!
+    nomePaciente: String!
+    emailPaciente: String!
+    dataConsulta: String!
+    medico: String!
+    especialidade: String
+    motivo: String
+    status: String!
+    criadoEm: String!
+    atualizadoEm: String!
+}

@@ -1,33 +1,73 @@
-# 🏥 Histórico Saúde - Tech Challenge Fase 3
+# 🏥 Histórico Saúde - Arquitetura de Microserviços
 
 ![Java](https://img.shields.io/badge/java-%23ED8B00.svg?style=for-the-badge&logo=openjdk&logoColor=white)
 ![Spring](https://img.shields.io/badge/spring-%236DB33F.svg?style=for-the-badge&logo=spring&logoColor=white)
 ![Postgres](https://img.shields.io/badge/postgres-%23316192.svg?style=for-the-badge&logo=postgresql&logoColor=white)
 ![RabbitMQ](https://img.shields.io/badge/RabbitMQ-FF6600?style=for-the-badge&logo=rabbitmq&logoColor=white)
 ![GraphQL](https://img.shields.io/badge/-GraphQL-E10098?style=for-the-badge&logo=graphql&logoColor=white)
+![Docker](https://img.shields.io/badge/Docker-2496ED?style=for-the-badge&logo=docker&logoColor=white)
 
-Em um ambiente hospitalar, é essencial contar com sistemas que garantam o agendamento eficaz de consultas, o gerenciamento do histórico de pacientes e o envio de lembretes automáticos para garantir a presença dos pacientes. O **Histórico Saúde** nasce dessa necessidade de criar uma solução robusta e segura, projetada para ambientes dinâmicos e de comunicação assíncrona.
+Em um ambiente hospitalar, é essencial contar com sistemas que garantam o agendamento eficaz de consultas, o gerenciamento do histórico de pacientes e o envio de lembretes automáticos para garantir a presença dos pacientes. O **Histórico Saúde** nasce dessa necessidade de criar uma solução robusta e segura, baseada em **arquitetura de microserviços**, projetada para ambientes dinâmicos e de comunicação assíncrona.
 
-O objetivo é desenvolver um backend simplificado e modular, com foco em segurança, garantindo escalabilidade e boas práticas de autenticação e comunicação entre serviços.
+## Objetivo do Projeto
 
-### Objetivo do Projeto
-
-O projeto tem como objetivo criar um sistema de gestão hospitalar compartilhado que atenda médicos, enfermeiros e pacientes.
+Desenvolver um sistema de gestão hospitalar compartilhado com **três microserviços independentes**:
+- **Service A (Agendamento):** REST API com autenticação JWT
+- **Service B (Notificações):** Worker que processa eventos
+- **Service C (Histórico):** GraphQL para consultas de dados históricos
 
 O sistema garante acesso controlado com funcionalidades específicas para cada perfil:
-*   **Médicos:** Podem visualizar e editar o histórico de consultas.
-*   **Enfermeiros:** Podem registrar consultas e acessar o histórico.
-*   **Pacientes:** Podem visualizar apenas as suas consultas.
+- **Médicos:** Visualizar, editar e cancelar consultas
+- **Enfermeiros:** Registrar e visualizar consultas
+- **Pacientes:** Visualizar apenas suas próprias consultas
+- **Admin:** Gerenciar usuários, consultas e ter acesso total
 
-A solução foi desenvolvida utilizando **Spring Boot**, comunicação assíncrona via **Message Broker** e consultas flexíveis via **GraphQL**, executando em ambiente Docker.
+## Arquitetura de Microserviços
+
+```
+┌─────────────────────────────────────────────────────────┐
+│                     CLIENTE                              │
+└──────────┬──────────────────────────────────┬────────────┘
+           │                                  │
+      REST/JWT                            GraphQL
+           │                                  │
+    ┌──────▼──────────┐           ┌──────────▼────────┐
+    │  Service A      │           │   Service C       │
+    │  Agendamento    │           │   Histórico       │
+    │  (REST)         │           │   (GraphQL)       │
+    │  Port: 8080     │           │   Port: 8082      │
+    └────────┬────────┘           └──────────┬────────┘
+             │                               │
+        ┌────▼──────────┐           ┌────────▼────┐
+        │  PostgreSQL   │           │ PostgreSQL  │
+        │  Agendamento  │           │ Histórico   │
+        │  Port: 5432   │           │ Port: 5433  │
+        └───────────────┘           └─────────────┘
+             │
+      ┌──────▼──────────────┐
+      │  RabbitMQ Broker    │
+      │  AMQP: 5672         │
+      │  Management: 15672  │
+      └──────┬──────────────┘
+             │
+      ┌──────▼──────────────┐
+      │  Service B          │
+      │  Notificações       │
+      │  (Worker)           │
+      │  Port: 8081         │
+      └─────────────────────┘
+```
 
 ## Tecnologias Utilizadas
 
--   **Java 21** & **Spring Boot 3**
--   **PostgreSQL 17** (Banco de dados relacional)
--   **Docker & Docker Compose** (Orquestração de containers)
--   **Spring Security & JWT** (Autenticação e Autorização)
--   **RabbitMQ** ou **Kafka** (Comunicação Assíncrona entre serviços)
+- **Java 21** & **Spring Boot 3.5.4**
+- **PostgreSQL 15** (Banco de dados relacional)
+- **RabbitMQ 3** (Message Broker)
+- **Spring Security & JWT** (Autenticação e Autorização)
+- **Spring GraphQL** (Queries flexíveis)
+- **Docker & Docker Compose** (Orquestração de containers)
+- **Flyway** (Migrações de banco de dados)
+- **Lombok** (Redução de boilerplate)
 -   **GraphQL** (Consultas flexíveis de histórico)
 -   **Flyway** (Migração de banco de dados)
 -   **Lombok** (Redução de código boilerplate)
@@ -42,98 +82,475 @@ O sistema foi separado em serviços lógicos para garantir a modularidade exigid
 
 ## Configuração e Execução
 
+### Pré-requisitos
+
+- Docker e Docker Compose instalados
+- Maven 3.9+ (para build local)
+- Java 21+
+- Postman (para testar APIs)
+
 ### Variáveis de Ambiente
 
 O sistema utiliza variáveis para conexão com banco e broker:
 
--   `JWT_SECRET`: Chave para assinatura de tokens.
--   `DATABASE_URL`: URL do PostgreSQL.
--   `BROKER_HOST`: Endereço do RabbitMQ/Kafka.
+-   `JWT_SECRET`: Chave para assinatura de tokens (padrão: `my-secret-key`)
+-   `JWT_EXPIRATION_TIME`: Tempo de expiração do token em ms (padrão: `86400000` = 24h)
 
 ### Executando com Docker Compose
 
-Para rodar a aplicação e a infraestrutura (Banco + Broker):
+Para rodar a aplicação e a infraestrutura completa (Bancos de Dados + RabbitMQ):
 
-1.  Suba os containers:
-    ```bash
-    docker compose up
-    ```
-2.  Acesse a aplicação: `http://localhost:8080`
+```bash
+# 1. Clone o repositório
+git clone <repositorio>
+cd historicosaude
 
-## Endpoints Principais
+# 2. Inicie todos os containers
+docker compose up -d
 
-### Autenticação (Spring Security)
-O acesso é protegido via Token JWT.
+# 3. Aguarde a inicialização dos serviços (~30 segundos)
+```
 
--   `POST /auth/login` - Autenticação de usuários (Médico, Enfermeiro, Paciente).
+**Serviços estarão disponíveis em:**
+- **Agendamento Service:** http://localhost:8080
+- **Notificações Service:** http://localhost:8081
+- **Histórico Service:** http://localhost:8082
+- **RabbitMQ Management:** http://localhost:15672 (guest/guest)
+- **PostgreSQL Agendamento:** localhost:5432
+- **PostgreSQL Histórico:** localhost:5433
 
-### Agendamento (REST)
-Gerenciado por enfermeiros e médicos.
+### Executando Localmente (sem Docker)
 
--   `POST /consultas` - Registra uma nova consulta. *Dispara evento de notificação.*
--   `PUT /consultas/{id}` - Modifica uma consulta existente. *Dispara evento de notificação.*
--   `DELETE /consultas/{id}` - Cancela um agendamento.
+```bash
+# Build do projeto
+./mvnw clean package -DskipTests
 
-### Histórico e Prontuário (GraphQL)
-Implementação de consultas flexíveis para listar atendimentos.
+# Inicie os serviços individualmente
+# Terminal 1 - Agendamento
+./mvnw -pl agendamento-service spring-boot:run
 
--   `POST /graphql` - Endpoint único para queries.
+# Terminal 2 - Notificações
+./mvnw -pl notificacoes-service spring-boot:run
 
-Exemplo de Query GraphQL:
+# Terminal 3 - Histórico
+./mvnw -pl historico-service spring-boot:run
+```
+
+## Rotas de API
+
+| Método | Endpoint | Descrição | Autorizações | Status |
+|--------|----------|-----------|--------------|--------|
+| **POST** | `/autenticacao/entrar` | Login e geração de Token JWT | Público
+| **POST** | `/autenticacao/registrar` | Cadastro de novos usuários | Público
+| **POST** | `/consultas` | Criar nova consulta (Dispara RabbitMQ) | ADMIN, ENFERMEIRO
+| **GET** | `/consultas` | Listar todas as consultas | ADMIN, ENFERMEIRO, MEDICO
+| **GET** | `/consultas/{id}` | Obter uma consulta específica | ADMIN, ENFERMEIRO, MEDICO
+| **GET** | `/consultas/minhas-consultas` | Listar minhas consultas (paciente) | PACIENTE
+| **PUT** | `/consultas/{id}` | Atualizar dados da consulta | ADMIN, MEDICO
+| **POST** | `/consultas/{id}/cancelar` | Cancelar uma consulta | ADMIN, MEDICO
+| **DELETE** | `/consultas/{id}` | Remover consulta permanentemente | ADMIN
+| **GET** | `/usuarios` | Listar todos os usuários com IDs | ADMIN
+
+
+## Endpoints Principais (Detalhados)
+
+### 1. Autenticação (Service A - Agendamento)
+Base URL: `http://localhost:8080/autenticacao`
+
+**Fazer Login:**
+```http
+POST /autenticacao/entrar
+Content-Type: application/json
+
+{
+  "login": "admin",
+  "senha": "123456"
+}
+
+Response (200):
+{
+  "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+}
+```
+
+**Registrar novo usuário:**
+```http
+POST /autenticacao/registrar
+Content-Type: application/json
+
+{
+  "cpf": "12345678901",
+  "nome": "João Silva",
+  "email": "joao@example.com",
+  "login": "joao",
+  "senha": "senha123",
+  "perfil": "PACIENTE"
+}
+
+Response (201):
+"Usuário registrado com sucesso"
+```
+
+**Logout (Invalidar Token):**
+```http
+POST /autenticacao/sair
+Authorization: Bearer {token}
+
+Response (200):
+{
+  "mensagem": "Logout realizado com sucesso"
+}
+```
+
+### 2. Agendamento de Consultas (Service A - Agendamento)
+Base URL: `http://localhost:8080/consultas`
+
+**Criar nova consulta** *(Dispara evento RabbitMQ - CONSULTA_CRIADA)*
+```http
+POST /consultas
+Authorization: Bearer {token}
+Content-Type: application/json
+
+{
+  "cpfPaciente": "12345678901",
+  "nomePaciente": "João Silva",
+  "emailPaciente": "joao@example.com",
+  "dataConsulta": "2026-02-15T14:30:00",
+  "medico": "Dr. Pedro",
+  "especialidade": "Cardiologia",
+  "motivo": "Consulta de rotina"
+}
+
+Response (201):
+123  // ID da consulta criada
+
+Permissões: ADMIN, ENFERMEIRO
+```
+
+**Listar todas as consultas:**
+```http
+GET /consultas
+Authorization: Bearer {token}
+
+Response (200):
+[
+  {
+    "id": 1,
+    "cpfPaciente": "12345678901",
+    "nomePaciente": "João Silva",
+    "emailPaciente": "joao@example.com",
+    "dataConsulta": "2026-02-15T14:30:00",
+    "medico": "Dr. Pedro",
+    "especialidade": "Cardiologia",
+    "motivo": "Consulta de rotina",
+    "status": "AGENDADA"
+  }
+]
+
+Permissões: ADMIN, ENFERMEIRO, MEDICO
+```
+
+**Listar consultas por CPF:**
+```http
+GET /consultas/cpf/{cpf}
+Authorization: Bearer {token}
+
+Exemplo: GET /consultas/cpf/12345678901
+
+Response (200):
+[
+  {
+    "id": 1,
+    "cpfPaciente": "12345678901",
+    "nomePaciente": "João Silva",
+    "dataConsulta": "2026-02-15T14:30:00",
+    "medico": "Dr. Pedro",
+    "especialidade": "Cardiologia",
+    "status": "AGENDADA"
+  }
+]
+
+Permissões: ADMIN, PACIENTE, ENFERMEIRO
+```
+
+**Obter consulta específica:**
+```http
+GET /consultas/{id}
+Authorization: Bearer {token}
+
+Exemplo: GET /consultas/1
+
+Response (200):
+{
+  "id": 1,
+  "cpfPaciente": "12345678901",
+  "nomePaciente": "João Silva",
+  "dataConsulta": "2026-02-15T14:30:00",
+  "medico": "Dr. Pedro",
+  "especialidade": "Cardiologia",
+  "status": "AGENDADA"
+}
+
+Permissões: ADMIN, ENFERMEIRO
+```
+
+**Atualizar consulta** *(Dispara evento RabbitMQ - CONSULTA_ATUALIZADA)*
+```http
+PUT /consultas/{id}
+Authorization: Bearer {token}
+Content-Type: application/json
+
+Exemplo: PUT /consultas/1
+
+{
+  "dataConsulta": "2026-02-20T10:00:00",
+  "medico": "Dra. Maria",
+  "especialidade": "Dermatologia",
+  "motivo": "Consulta de acompanhamento"
+}
+
+Response (204): No Content
+
+Permissões: ADMIN, ENFERMEIRO
+```
+
+**Cancelar consulta** *(Dispara evento RabbitMQ - CONSULTA_CANCELADA)*
+```http
+POST /consultas/{id}/cancelar
+Authorization: Bearer {token}
+
+Exemplo: POST /consultas/1/cancelar
+
+Response (204): No Content
+
+Permissões: ADMIN, MEDICO, PACIENTE
+```
+
+**Deletar consulta (permanente):**
+```http
+DELETE /consultas/{id}
+Authorization: Bearer {token}
+
+Exemplo: DELETE /consultas/1
+
+Response (204): No Content
+
+Permissões: ADMIN
+```
+
+### 3. Consultas Privadas do Paciente (Service A - Agendamento)
+Base URL: `http://localhost:8080/consultas/minhas-consultas`
+
+**Listar minhas consultas** *(Paciente acessa apenas suas consultas)*
+```http
+GET /consultas/minhas-consultas
+Authorization: Bearer {token}
+
+Response (200):
+[
+  {
+    "id": 1,
+    "cpfPaciente": "12345678901",
+    "nomePaciente": "João Silva",
+    "emailPaciente": "joao@example.com",
+    "dataConsulta": "2026-02-15T14:30:00",
+    "medico": "Dr. Pedro",
+    "especialidade": "Cardiologia",
+    "motivo": "Consulta de rotina",
+    "status": "AGENDADA"
+  }
+]
+
+Permissões: PACIENTE
+Nota: O CPF é extraído automaticamente do token JWT autenticado
+```
+
+### 4. Usuários (Service A - Agendamento)
+Base URL: `http://localhost:8080/usuarios`
+
+**Listar todos os usuários com IDs:**
+```http
+GET /usuarios
+Authorization: Bearer {token}
+
+Response (200):
+[
+  {
+    "id": 1,
+    "cpf": "12345678901",
+    "nome": "Administrador Teste",
+    "email": "admin@historicosaude.com",
+    "login": "admin",
+    "dataUltimaAlteracao": "2026-01-10T06:30:00+00:00",
+    "perfil": "ADMIN"
+  },
+  {
+    "id": 2,
+    "cpf": "98765432109",
+    "nome": "Médico Silva",
+    "email": "medico@example.com",
+    "login": "medico.silva",
+    "dataUltimaAlteracao": "2026-01-10T06:30:00+00:00",
+    "perfil": "MEDICO"
+  }
+]
+
+Permissões: ADMIN
+```
+
+### 5. Histórico de Consultas (Service C - Histórico - GraphQL)
+Base URL: `http://localhost:8082/graphql`
+
+**Listar todas as consultas (com paginação):**
 ```graphql
 query {
-  historicoPaciente(idPaciente: 1) {
+  todasAsConsultas(limit: 10, offset: 0) {
     id
+    cpfPaciente
+    nomePaciente
+    emailPaciente
     dataConsulta
-    medicoResponsavel
-    diagnostico
+    medico
+    especialidade
+    motivo
+    status
+    criadoEm
+    atualizadoEm
+  }
+}
+
+Response:
+{
+  "data": {
+    "todasAsConsultas": [
+      {
+        "id": "1",
+        "cpfPaciente": "12345678901",
+        "nomePaciente": "João Silva",
+        "emailPaciente": "joao@example.com",
+        "dataConsulta": "2026-02-15T14:30:00",
+        "medico": "Dr. Pedro",
+        "especialidade": "Cardiologia",
+        "motivo": "Consulta de rotina",
+        "status": "AGENDADA",
+        "criadoEm": "2026-01-10T10:30:00",
+        "atualizadoEm": "2026-01-10T10:30:00"
+      }
+    ]
+  }
+}
+
+Permissões: ADMIN, MEDICO, ENFERMEIRO
+Nota: Suporta paginação com limit e offset
+```
+
+**Listar consultas por CPF:**
+```graphql
+query {
+  consultasPorCpf(cpf: "12345678901") {
+    id
+    nomePaciente
+    dataConsulta
+    medico
+    especialidade
+    motivo
+    status
+  }
+}
+
+Response:
+{
+  "data": {
+    "consultasPorCpf": [
+      {
+        "id": "1",
+        "nomePaciente": "João Silva",
+        "dataConsulta": "2026-02-15T14:30:00",
+        "medico": "Dr. Pedro",
+        "especialidade": "Cardiologia",
+        "motivo": "Consulta de rotina",
+        "status": "AGENDADA"
+      }
+    ]
   }
 }
 ```
 
+**Listar consultas por médico:**
+```graphql
+query {
+  consultasPorMedico(medico: "Dr. Pedro") {
+    id
+    nomePaciente
+    cpfPaciente
+    dataConsulta
+    especialidade
+    status
+  }
+}
+
+Response:
+{
+  "data": {
+    "consultasPorMedico": [
+      {
+        "id": "1",
+        "nomePaciente": "João Silva",
+        "cpfPaciente": "12345678901",
+        "dataConsulta": "2026-02-15T14:30:00",
+        "especialidade": "Cardiologia",
+        "status": "AGENDADA"
+      }
+    ]
+  }
+}
+```
+
+**Acessar GraphQL IDE (GraphiQL):**
+- URL: `http://localhost:8082/graphiql`
+- Sem autenticação necessária (IDE pública)
+- Para rodar queries que exigem ADMIN: adicione token no header
+
+```
+Authorization: Bearer {seu_token_jwt}
+```
+
 ## Sistema de Autorização
 
-O sistema implementa controle de acesso baseado em roles (perfis):
+O sistema implementa controle de acesso baseado em roles (perfis) usando Spring Security + JWT:
 
--   **MÉDICO:** Acesso total ao histórico (leitura/escrita) e visualização de agendamentos.
--   **ENFERMEIRO:** Permissão para criar/editar agendamentos e visualizar histórico.
--   **PACIENTE:** Acesso restrito apenas à visualização de suas próprias consultas futuras e passadas.
+| Perfil | Permissões |
+|--------|-----------|
+| **ADMIN** | Criar/editar/deletar usuários e consultas. Acesso total. |
+| **MÉDICO** | Visualizar todas as consultas. Editar consultas. Ver histórico completo no GraphQL. |
+| **ENFERMEIRO** | Criar e editar agendamentos. Visualizar histórico de consultas. |
+| **PACIENTE** | Visualizar apenas suas próprias consultas via `/minhas-consultas`. Cancelar consulta própria. |
 
-## Estrutura do Banco de Dados
-
-O sistema utiliza PostgreSQL com as seguintes entidades principais adaptadas para o contexto:
-
--   **Usuario:** Dados de login, senha e Role (Médico, Enfermeiro, Paciente).
--   **Consulta:** Data, horário, status, médico e paciente vinculados.
--   **Prontuario/Historico:** Registros clínicos associados às consultas.
-
-## Arquitetura do Código (Clean Architecture)
-
-Seguindo o padrão de organização para garantir manutenibilidade e testabilidade:
-
+**Credencial de teste (inserida no migration V2):**
 ```
-src/main/java/com/historicosaude/
-├── application/       # Casos de uso e DTOs
-├── domain/            # Entidades e Regras de Negócio
-├── infra/             # Configurações (Security, RabbitMQ, GraphQL)
-│   ├── controller/    # Endpoints REST
-│   ├── graphql/       # Resolvers GraphQL
-│   ├── messaging/     # Producers/Consumers
-│   └── persistence/   # Repositórios JPA
+Login: admin
+Senha: 123456
+Perfil: ADMIN
+CPF: 12345678901
 ```
 
-## Documentação da API
+## Fluxo de Comunicação Assíncrona (RabbitMQ)
 
-### Collection para Teste
+1. **Agendamento Service** cria/atualiza/cancela uma consulta
+2. Publica um evento `ConsultaEvent` no RabbitMQ
+3. **Histórico Service** consome o evento e atualiza sua base de dados
+4. **Notificações Service** consome o evento e processa notificações
 
-Para validar os fluxos (Login -> Agendar -> Consultar Histórico), utilize a Collection do Postman incluída no repositório.
+**Fila principal:** `consultas.notificacoes.queue`
 
-**Como usar:**
-1.  Importe o arquivo `.json` da collection no Postman.
-2.  Execute as requisições na ordem sugerida para validar o fluxo de autenticação e agendamento.
-```
+**Tipos de eventos:**
+- `CONSULTA_CRIADA`
+- `CONSULTA_ATUALIZADA`
+- `CONSULTA_CANCELADA`
 
-***
+## Collection
 
-### ⚠️ Lembrete Importante
-O documento acima menciona uma "Collection do Postman". Como este é um novo projeto, você precisará exportar a sua coleção de testes do Postman (formato `.json`) e colocá-la no seu repositório Git, pois isso é um dos **entregáveis obrigatórios** da fase 3.
+Para testar todos os endpoints de forma organizada:
+
+1. **Importe a Collection do Postman** (arquivo `HistoricoSaude.postman_collection.json` incluído no repositório)
+2. **Configure a variável de ambiente:** `{{base_url}}` = `http://localhost:8080`

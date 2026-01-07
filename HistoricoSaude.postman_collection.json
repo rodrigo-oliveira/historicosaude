@@ -1,0 +1,1299 @@
+{
+	"info": {
+		"_postman_id": "e3adbbdb-9e2e-402f-b68a-fbdbf3212014",
+		"name": "HistoricoSaude",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "1740145"
+	},
+	"item": [
+		{
+			"name": "Setup",
+			"item": [
+				{
+					"name": "Autenticação (Admin)",
+					"item": [
+						{
+							"name": "/autenticacao/entrar",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"if (pm.response.code === 200) {",
+											"    try {",
+											"        let json = pm.response.json();",
+											"        if (json.token) {",
+											"            pm.environment.set('auth_token', json.token);",
+											"            console.log('Token atualizado:', json.token);",
+											"        }",
+											"    } catch (e) {",
+											"        console.warn('Resposta não é JSON válido');",
+											"    }",
+											"}"
+										],
+										"type": "text/javascript",
+										"packages": {},
+										"requests": {}
+									}
+								}
+							],
+							"request": {
+								"auth": {
+									"type": "noauth"
+								},
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"login\": \"{{usuario_login_admin}}\",\n    \"senha\": \"{{usuario_senha_admin}}\"\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{base_url}}/autenticacao/entrar",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"autenticacao",
+										"entrar"
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "Adicionar usuários de teste",
+					"item": [
+						{
+							"name": "/autenticacao/registrar (Médico)",
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"login\" : \"{{usuario_login_medico}}\",\n    \"senha\" : \"{{usuario_senha_medico}}\",\n    \"nome\" : \"Carlos Santos\",\n    \"email\" : \"medico-teste@email.com\",\n    \"cpf\" : \"12345678904\",\n    \"perfil\":\"MEDICO\"\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{base_url}}/autenticacao/registrar",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"autenticacao",
+										"registrar"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "/autenticacao/registrar (Médico 2)",
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"login\" : \"{{usuario_login_medico2}}\",\n    \"senha\" : \"{{usuario_senha_medico2}}\",\n    \"nome\" : \"Renato Silva\",\n    \"email\" : \"medico-teste-2@email.com\",\n    \"cpf\" : \"12345678905\",\n    \"perfil\":\"MEDICO\"\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{base_url}}/autenticacao/registrar",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"autenticacao",
+										"registrar"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "/autenticacao/registrar (Enfermeiro)",
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"login\": \"{{usuario_login_enfermeiro}}\",\n    \"senha\": \"{{usuario_senha_enfermeiro}}\",\n    \"nome\": \"Enfermeiro Teste\",\n    \"email\": \"enfermeiro-teste@email.com\",\n    \"cpf\": \"12345678908\",\n    \"perfil\": \"ENFERMEIRO\"\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{base_url}}/autenticacao/registrar",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"autenticacao",
+										"registrar"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "/autenticacao/registrar (Paciente)",
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"login\": \"{{usuario_login_paciente}}\",\n    \"senha\": \"{{usuario_senha_paciente}}\",\n    \"nome\": \"Paciente Teste\",\n    \"email\": \"paciente-teste@email.com\",\n    \"cpf\": \"12345678909\",\n    \"perfil\": \"PACIENTE\"\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{base_url}}/autenticacao/registrar",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"autenticacao",
+										"registrar"
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "/usuarios",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"let responseData = pm.response.json();",
+									"let medico_id = responseData.filter(function(item){return item.login === 'medico'})[0].id;",
+									"let medico2_id = responseData.filter(function(item){return item.login === 'medico2'})[0].id;",
+									"let enfermeiro_id = responseData.filter(function(item){return item.login === 'enfermeiro'})[0].id;",
+									"let paciente_id = responseData.filter(function(item){return item.login === 'paciente'})[0].id;",
+									"",
+									"pm.environment.set(\"usuario_medico_id\", medico_id);",
+									"pm.environment.set(\"usuario_medico2_id\", medico2_id);",
+									"pm.environment.set(\"usuario_enfermeiro_id\", enfermeiro_id);",
+									"pm.environment.set(\"usuario_paciente_id\", paciente_id);"
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/usuarios",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"usuarios"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "/autenticacao/sair",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/autenticacao/sair",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"autenticacao",
+								"sair"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Consultas",
+			"item": [
+				{
+					"name": "Enfermeiro",
+					"item": [
+						{
+							"name": "/autenticacao/entrar",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"if (pm.response.code === 200) {",
+											"    try {",
+											"        let json = pm.response.json();",
+											"        if (json.token) {",
+											"            pm.environment.set('auth_token', json.token);",
+											"            console.log('Token atualizado:', json.token);",
+											"        }",
+											"    } catch (e) {",
+											"        console.warn('Resposta não é JSON válido');",
+											"    }",
+											"}"
+										],
+										"type": "text/javascript",
+										"packages": {},
+										"requests": {}
+									}
+								}
+							],
+							"request": {
+								"auth": {
+									"type": "noauth"
+								},
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"login\": \"{{usuario_login_enfermeiro}}\",\n    \"senha\": \"{{usuario_senha_enfermeiro}}\"\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{base_url}}/autenticacao/entrar",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"autenticacao",
+										"entrar"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "/consultas (Cadastro 1)",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"let responseData = pm.response.json();",
+											"let consulta_id = responseData.id;",
+											"",
+											"pm.environment.set(\"consulta_id\", consulta_id);",
+											""
+										],
+										"type": "text/javascript",
+										"packages": {},
+										"requests": {}
+									}
+								},
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											""
+										],
+										"type": "text/javascript",
+										"packages": {},
+										"requests": {}
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"cpfPaciente\": \"12345678909\",\n  \"nomePaciente\": \"Paciente Teste\",\n  \"emailPaciente\": \"paciente-teste@email.com\",\n  \"dataConsulta\": \"2026-01-25T14:30:00\",\n  \"medico\": \"Carlos Santos\",\n  \"especialidade\": \"Cardiologia\",\n  \"motivo\": \"Avaliação cardíaca\"\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{base_url}}/consultas",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"consultas"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "/consultas (Cadastro 2)",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											""
+										],
+										"type": "text/javascript",
+										"packages": {},
+										"requests": {}
+									}
+								},
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											""
+										],
+										"type": "text/javascript",
+										"packages": {},
+										"requests": {}
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"cpfPaciente\": \"12345678902\",\n  \"nomePaciente\": \"Roberto Silva\",\n  \"emailPaciente\": \"roberto.silva@email.com\",\n  \"dataConsulta\": \"2026-02-15T14:30:00\",\n  \"medico\": \"Renato Silva\",\n  \"especialidade\": \"Cardiologia\",\n  \"motivo\": \"Avaliação cardíaca\"\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{base_url}}/consultas",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"consultas"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "/consultas",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"let responseData = pm.response.json();",
+											"",
+											"let consulta_id = responseData ? responseData[0].id : null;",
+											"",
+											"pm.environment.set(\"consulta_id\", consulta_id);",
+											""
+										],
+										"type": "text/javascript",
+										"packages": {},
+										"requests": {}
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{base_url}}/consultas",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"consultas"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "/consultas/{id}",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{base_url}}/consultas/1",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"consultas",
+										"1"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "/autenticacao/sair",
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{auth_token}}",
+											"type": "string"
+										}
+									]
+								},
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{base_url}}/autenticacao/sair",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"autenticacao",
+										"sair"
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "Médico",
+					"item": [
+						{
+							"name": "/autenticacao/entrar",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"if (pm.response.code === 200) {",
+											"    try {",
+											"        let json = pm.response.json();",
+											"        if (json.token) {",
+											"            pm.environment.set('auth_token', json.token);",
+											"            console.log('Token atualizado:', json.token);",
+											"        }",
+											"    } catch (e) {",
+											"        console.warn('Resposta não é JSON válido');",
+											"    }",
+											"}"
+										],
+										"type": "text/javascript",
+										"packages": {},
+										"requests": {}
+									}
+								}
+							],
+							"request": {
+								"auth": {
+									"type": "noauth"
+								},
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"login\": \"{{usuario_login_medico}}\",\n    \"senha\": \"{{usuario_senha_medico}}\"\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{base_url}}/autenticacao/entrar",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"autenticacao",
+										"entrar"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "/consultas",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"let responseData = pm.response.json();",
+											"",
+											"let consulta_id = responseData ? responseData[0].id : null;",
+											"",
+											"pm.environment.set(\"consulta_id\", consulta_id);",
+											""
+										],
+										"type": "text/javascript",
+										"packages": {},
+										"requests": {}
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{base_url}}/consultas",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"consultas"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "/consultas/{consulta_id}",
+							"request": {
+								"method": "PUT",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"cpfPaciente\": \"12345678909\",\n  \"nomePaciente\": \"Paciente Teste\",\n  \"emailPaciente\": \"paciente-teste@email.com\",\n  \"dataConsulta\": \"2026-01-27T15:30:00\",\n  \"medico\": \"Carlos Santos\",\n  \"especialidade\": \"Cardiologia\",\n  \"motivo\": \"Avaliação cardíaca\"\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{base_url}}/consultas/1",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"consultas",
+										"1"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "/consultas/{consulta_id}",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{base_url}}/consultas/1",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"consultas",
+										"1"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "/consultas/{consulta_id}/cancelar",
+							"request": {
+								"method": "POST",
+								"header": [],
+								"url": {
+									"raw": "{{base_url}}/consultas/1/cancelar",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"consultas",
+										"1",
+										"cancelar"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "/autenticacao/sair",
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{auth_token}}",
+											"type": "string"
+										}
+									]
+								},
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{base_url}}/autenticacao/sair",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"autenticacao",
+										"sair"
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "Paciente",
+					"item": [
+						{
+							"name": "/autenticacao/entrar",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"if (pm.response.code === 200) {",
+											"    try {",
+											"        let json = pm.response.json();",
+											"        if (json.token) {",
+											"            pm.environment.set('auth_token', json.token);",
+											"            console.log('Token atualizado:', json.token);",
+											"        }",
+											"    } catch (e) {",
+											"        console.warn('Resposta não é JSON válido');",
+											"    }",
+											"}"
+										],
+										"type": "text/javascript",
+										"packages": {},
+										"requests": {}
+									}
+								}
+							],
+							"request": {
+								"auth": {
+									"type": "noauth"
+								},
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"login\": \"{{usuario_login_paciente}}\",\n    \"senha\": \"{{usuario_senha_paciente}}\"\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{base_url}}/autenticacao/entrar",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"autenticacao",
+										"entrar"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "/consultas/minhas-consultas",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											""
+										],
+										"type": "text/javascript",
+										"packages": {},
+										"requests": {}
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{base_url}}/consultas/minhas-consultas",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"consultas",
+										"minhas-consultas"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "/autenticacao/sair",
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{auth_token}}",
+											"type": "string"
+										}
+									]
+								},
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{base_url}}/autenticacao/sair",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"autenticacao",
+										"sair"
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				}
+			]
+		},
+		{
+			"name": "Consultas GraphQL",
+			"item": [
+				{
+					"name": "/autenticacao/entrar",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 200) {",
+									"    try {",
+									"        let json = pm.response.json();",
+									"        if (json.token) {",
+									"            pm.environment.set('auth_token', json.token);",
+									"            console.log('Token atualizado:', json.token);",
+									"        }",
+									"    } catch (e) {",
+									"        console.warn('Resposta não é JSON válido');",
+									"    }",
+									"}"
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"login\": \"{{usuario_login_enfermeiro}}\",\n    \"senha\": \"{{usuario_senha_enfermeiro}}\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/autenticacao/entrar",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"autenticacao",
+								"entrar"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Todas as consultas",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "graphql",
+							"graphql": {
+								"query": "query MyQuery {\n  todasAsConsultas {\n    cpfPaciente,\n    atualizadoEm\n    criadoEm\n    nomePaciente\n    status\n    motivo\n    medico\n    especialidade\n    emailPaciente\n    dataConsulta\n    id\n  }\n}",
+								"variables": ""
+							}
+						},
+						"url": {
+							"raw": "{{base_graphql_url}}/graphql",
+							"host": [
+								"{{base_graphql_url}}"
+							],
+							"path": [
+								"graphql"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Consultas por CPF",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "graphql",
+							"graphql": {
+								"query": "query MyQuery {\n  consultasPorCpf(cpf: \"12345678902\") {\n    cpfPaciente\n    atualizadoEm\n    criadoEm\n    dataConsulta\n    emailPaciente\n    especialidade\n    id\n    medico\n    motivo\n    status\n  }\n}",
+								"variables": ""
+							}
+						},
+						"url": {
+							"raw": "{{base_graphql_url}}/graphql",
+							"host": [
+								"{{base_graphql_url}}"
+							],
+							"path": [
+								"graphql"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Consultas por médico",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "graphql",
+							"graphql": {
+								"query": "query MyQuery {\n  consultasPorMedico(medico: \"Carlos Santos\") {\n    atualizadoEm\n    cpfPaciente\n    emailPaciente\n    criadoEm\n    dataConsulta\n    especialidade\n    id\n    medico\n    status\n    nomePaciente\n    motivo\n  }\n}",
+								"variables": ""
+							}
+						},
+						"url": {
+							"raw": "{{base_graphql_url}}/graphql",
+							"host": [
+								"{{base_graphql_url}}"
+							],
+							"path": [
+								"graphql"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "/autenticacao/sair",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/autenticacao/sair",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"autenticacao",
+								"sair"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Limpeza de Dados (Admin)",
+			"item": [
+				{
+					"name": "Autenticação (Admin)",
+					"item": [
+						{
+							"name": "/autenticacao/entrar",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"if (pm.response.code === 200) {",
+											"    try {",
+											"        let json = pm.response.json();",
+											"        if (json.token) {",
+											"            pm.environment.set('auth_token', json.token);",
+											"            console.log('Token atualizado:', json.token);",
+											"        }",
+											"    } catch (e) {",
+											"        console.warn('Resposta não é JSON válido');",
+											"    }",
+											"}"
+										],
+										"type": "text/javascript",
+										"packages": {},
+										"requests": {}
+									}
+								}
+							],
+							"request": {
+								"auth": {
+									"type": "noauth"
+								},
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"login\": \"{{usuario_login_admin}}\",\n    \"senha\": \"{{usuario_senha_admin}}\"\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{base_url}}/autenticacao/entrar",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"autenticacao",
+										"entrar"
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "Deletar consultas",
+					"item": [
+						{
+							"name": "/consultas/1",
+							"request": {
+								"method": "DELETE",
+								"header": [],
+								"url": {
+									"raw": "{{base_url}}/consultas/1",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"consultas",
+										"1"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "/consultas/2",
+							"request": {
+								"method": "DELETE",
+								"header": [],
+								"url": {
+									"raw": "{{base_url}}/consultas/2",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"consultas",
+										"2"
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "Deletar usuários",
+					"item": [
+						{
+							"name": "/usuarios/{{usuario_medico_id}}",
+							"request": {
+								"method": "DELETE",
+								"header": [],
+								"url": {
+									"raw": "{{base_url}}/usuarios/{{usuario_medico_id}}",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"usuarios",
+										"{{usuario_medico_id}}"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "/usuarios/{{usuario_medico2_id}}",
+							"request": {
+								"method": "DELETE",
+								"header": [],
+								"url": {
+									"raw": "{{base_url}}/usuarios/{{usuario_medico2_id}}",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"usuarios",
+										"{{usuario_medico2_id}}"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "/usuarios/{{usuario_enfermeiro_id}}",
+							"request": {
+								"method": "DELETE",
+								"header": [],
+								"url": {
+									"raw": "{{base_url}}/usuarios/{{usuario_enfermeiro_id}}",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"usuarios",
+										"{{usuario_enfermeiro_id}}"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "/usuarios/usuario_paciente_id",
+							"request": {
+								"method": "DELETE",
+								"header": [],
+								"url": {
+									"raw": "{{base_url}}/usuarios/{{usuario_paciente_id}}",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"usuarios",
+										"{{usuario_paciente_id}}"
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				}
+			],
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"type": "text/javascript",
+						"packages": {},
+						"requests": {},
+						"exec": [
+							""
+						]
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"type": "text/javascript",
+						"packages": {},
+						"requests": {},
+						"exec": [
+							""
+						]
+					}
+				}
+			]
+		}
+	],
+	"auth": {
+		"type": "bearer",
+		"bearer": [
+			{
+				"key": "token",
+				"value": "{{auth_token}}",
+				"type": "string"
+			}
+		]
+	},
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"packages": {},
+				"requests": {},
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"packages": {},
+				"requests": {},
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "base_url",
+			"value": ""
+		},
+		{
+			"key": "base_graphql_url",
+			"value": ""
+		},
+		{
+			"key": "auth_token",
+			"value": ""
+		},
+		{
+			"key": "usuario_login_admin",
+			"value": ""
+		},
+		{
+			"key": "usuario_senha_admin",
+			"value": ""
+		},
+		{
+			"key": "usuario_login_medico",
+			"value": ""
+		},
+		{
+			"key": "usuario_senha_medico",
+			"value": ""
+		},
+		{
+			"key": "usuario_login_enfermeiro",
+			"value": ""
+		},
+		{
+			"key": "usuario_senha_enfermeiro",
+			"value": ""
+		},
+		{
+			"key": "usuario_login_paciente",
+			"value": ""
+		},
+		{
+			"key": "usuario_senha_paciente",
+			"value": ""
+		},
+		{
+			"key": "consulta_id",
+			"value": ""
+		},
+		{
+			"key": "usuario_medico_id",
+			"value": ""
+		},
+		{
+			"key": "usuario_medico2_id",
+			"value": ""
+		},
+		{
+			"key": "usuario_enfermeiro_id",
+			"value": ""
+		},
+		{
+			"key": "usuario_paciente_id",
+			"value": ""
+		},
+		{
+			"key": "usuario_login_medico2",
+			"value": ""
+		},
+		{
+			"key": "usuario_senha_medico2",
+			"value": ""
+		}
+	]
+}
