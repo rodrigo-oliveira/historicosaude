@@ -10,66 +10,66 @@
 			"name": "Setup",
 			"item": [
 				{
-					"name": "Autenticação (Admin)",
-					"item": [
-						{
-							"name": "/autenticacao/entrar",
-							"event": [
-								{
-									"listen": "test",
-									"script": {
-										"exec": [
-											"if (pm.response.code === 200) {",
-											"    try {",
-											"        let json = pm.response.json();",
-											"        if (json.token) {",
-											"            pm.environment.set('auth_token', json.token);",
-											"            console.log('Token atualizado:', json.token);",
-											"        }",
-											"    } catch (e) {",
-											"        console.warn('Resposta não é JSON válido');",
-											"    }",
-											"}"
-										],
-										"type": "text/javascript",
-										"packages": {},
-										"requests": {}
-									}
-								}
-							],
-							"request": {
-								"auth": {
-									"type": "noauth"
-								},
-								"method": "POST",
-								"header": [],
-								"body": {
-									"mode": "raw",
-									"raw": "{\n    \"login\": \"{{usuario_login_admin}}\",\n    \"senha\": \"{{usuario_senha_admin}}\"\n}",
-									"options": {
-										"raw": {
-											"language": "json"
-										}
-									}
-								},
-								"url": {
-									"raw": "{{base_url}}/autenticacao/entrar",
-									"host": [
-										"{{base_url}}"
-									],
-									"path": [
-										"autenticacao",
-										"entrar"
-									]
-								}
-							},
-							"response": []
-						}
-					]
-				},
-				{
 					"name": "Adicionar usuários de teste",
 					"item": [
+						{
+							"name": "Autenticação (Admin)",
+							"item": [
+								{
+									"name": "/autenticacao/entrar",
+									"event": [
+										{
+											"listen": "test",
+											"script": {
+												"exec": [
+													"if (pm.response.code === 200) {",
+													"    try {",
+													"        let json = pm.response.json();",
+													"        if (json.token) {",
+													"            pm.environment.set('auth_token', json.token);",
+													"            console.log('Token atualizado:', json.token);",
+													"        }",
+													"    } catch (e) {",
+													"        console.warn('Resposta não é JSON válido');",
+													"    }",
+													"}"
+												],
+												"type": "text/javascript",
+												"packages": {},
+												"requests": {}
+											}
+										}
+									],
+									"request": {
+										"auth": {
+											"type": "noauth"
+										},
+										"method": "POST",
+										"header": [],
+										"body": {
+											"mode": "raw",
+											"raw": "{\n    \"login\": \"{{usuario_login_admin}}\",\n    \"senha\": \"{{usuario_senha_admin}}\"\n}",
+											"options": {
+												"raw": {
+													"language": "json"
+												}
+											}
+										},
+										"url": {
+											"raw": "{{base_url}}/autenticacao/entrar",
+											"host": [
+												"{{base_url}}"
+											],
+											"path": [
+												"autenticacao",
+												"entrar"
+											]
+										}
+									},
+									"response": []
+								}
+							]
+						},
 						{
 							"name": "/autenticacao/registrar (Médico)",
 							"request": {
@@ -177,74 +177,65 @@
 								}
 							},
 							"response": []
+						},
+						{
+							"name": "/usuarios",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"let responseData = pm.response.json();",
+											"let medico_id = responseData.filter(function(item){return item.login === 'medico'})[0]?.id;",
+											"let medico2_id = responseData.filter(function(item){return item.login === 'medico2'})[0]?.id;",
+											"let enfermeiro_id = responseData.filter(function(item){return item.login === 'enfermeiro'})[0]?.id;",
+											"let paciente_id = responseData.filter(function(item){return item.login === 'paciente'})[0]?.id;",
+											"",
+											"pm.environment.set(\"usuario_medico_id\", medico_id);",
+											"pm.environment.set(\"usuario_medico2_id\", medico2_id);",
+											"pm.environment.set(\"usuario_enfermeiro_id\", enfermeiro_id);",
+											"pm.environment.set(\"usuario_paciente_id\", paciente_id);"
+										],
+										"type": "text/javascript",
+										"packages": {},
+										"requests": {}
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{base_url}}/usuarios",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"usuarios"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "/autenticacao/sair",
+							"request": {
+								"method": "POST",
+								"header": [],
+								"url": {
+									"raw": "{{base_url}}/autenticacao/sair",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"autenticacao",
+										"sair"
+									]
+								}
+							},
+							"response": []
 						}
 					]
-				},
-				{
-					"name": "/usuarios",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"exec": [
-									"let responseData = pm.response.json();",
-									"let medico_id = responseData.filter(function(item){return item.login === 'medico'})[0].id;",
-									"let medico2_id = responseData.filter(function(item){return item.login === 'medico2'})[0].id;",
-									"let enfermeiro_id = responseData.filter(function(item){return item.login === 'enfermeiro'})[0].id;",
-									"let paciente_id = responseData.filter(function(item){return item.login === 'paciente'})[0].id;",
-									"",
-									"pm.environment.set(\"usuario_medico_id\", medico_id);",
-									"pm.environment.set(\"usuario_medico2_id\", medico2_id);",
-									"pm.environment.set(\"usuario_enfermeiro_id\", enfermeiro_id);",
-									"pm.environment.set(\"usuario_paciente_id\", paciente_id);"
-								],
-								"type": "text/javascript",
-								"packages": {},
-								"requests": {}
-							}
-						}
-					],
-					"request": {
-						"method": "GET",
-						"header": [],
-						"url": {
-							"raw": "{{base_url}}/usuarios",
-							"host": [
-								"{{base_url}}"
-							],
-							"path": [
-								"usuarios"
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "/autenticacao/sair",
-					"request": {
-						"method": "POST",
-						"header": [],
-						"body": {
-							"mode": "raw",
-							"raw": "",
-							"options": {
-								"raw": {
-									"language": "json"
-								}
-							}
-						},
-						"url": {
-							"raw": "{{base_url}}/autenticacao/sair",
-							"host": [
-								"{{base_url}}"
-							],
-							"path": [
-								"autenticacao",
-								"sair"
-							]
-						}
-					},
-					"response": []
 				}
 			]
 		},
@@ -315,7 +306,7 @@
 									"script": {
 										"exec": [
 											"let responseData = pm.response.json();",
-											"let consulta_id = responseData.id;",
+											"let consulta_id = responseData;",
 											"",
 											"pm.environment.set(\"consulta_id\", consulta_id);",
 											""
@@ -368,6 +359,10 @@
 									"listen": "test",
 									"script": {
 										"exec": [
+											"let responseData = pm.response.json();",
+											"let consulta_id = responseData;",
+											"",
+											"pm.environment.set(\"consulta_id_2\", consulta_id);",
 											""
 										],
 										"type": "text/javascript",
@@ -418,11 +413,6 @@
 									"listen": "test",
 									"script": {
 										"exec": [
-											"let responseData = pm.response.json();",
-											"",
-											"let consulta_id = responseData ? responseData[0].id : null;",
-											"",
-											"pm.environment.set(\"consulta_id\", consulta_id);",
 											""
 										],
 										"type": "text/javascript",
@@ -452,13 +442,13 @@
 								"method": "GET",
 								"header": [],
 								"url": {
-									"raw": "{{base_url}}/consultas/1",
+									"raw": "{{base_url}}/consultas/{{consulta_id}}",
 									"host": [
 										"{{base_url}}"
 									],
 									"path": [
 										"consultas",
-										"1"
+										"{{consulta_id}}"
 									]
 								}
 							},
@@ -566,11 +556,6 @@
 									"listen": "test",
 									"script": {
 										"exec": [
-											"let responseData = pm.response.json();",
-											"",
-											"let consulta_id = responseData ? responseData[0].id : null;",
-											"",
-											"pm.environment.set(\"consulta_id\", consulta_id);",
 											""
 										],
 										"type": "text/javascript",
@@ -595,7 +580,7 @@
 							"response": []
 						},
 						{
-							"name": "/consultas/{consulta_id}",
+							"name": "/consultas/{{consulta_id}}",
 							"request": {
 								"method": "PUT",
 								"header": [],
@@ -609,49 +594,49 @@
 									}
 								},
 								"url": {
-									"raw": "{{base_url}}/consultas/1",
+									"raw": "{{base_url}}/consultas/{{consulta_id}}",
 									"host": [
 										"{{base_url}}"
 									],
 									"path": [
 										"consultas",
-										"1"
+										"{{consulta_id}}"
 									]
 								}
 							},
 							"response": []
 						},
 						{
-							"name": "/consultas/{consulta_id}",
+							"name": "/consultas/{{consulta_id}}",
 							"request": {
 								"method": "GET",
 								"header": [],
 								"url": {
-									"raw": "{{base_url}}/consultas/1",
+									"raw": "{{base_url}}/consultas/{{consulta_id}}",
 									"host": [
 										"{{base_url}}"
 									],
 									"path": [
 										"consultas",
-										"1"
+										"{{consulta_id}}"
 									]
 								}
 							},
 							"response": []
 						},
 						{
-							"name": "/consultas/{consulta_id}/cancelar",
+							"name": "/consultas/{{consulta_id}}/cancelar",
 							"request": {
 								"method": "POST",
 								"header": [],
 								"url": {
-									"raw": "{{base_url}}/consultas/1/cancelar",
+									"raw": "{{base_url}}/consultas/{{consulta_id}}/cancelar",
 									"host": [
 										"{{base_url}}"
 									],
 									"path": [
 										"consultas",
-										"1",
+										"{{consulta_id}}",
 										"cancelar"
 									]
 								}
@@ -1047,36 +1032,36 @@
 					"name": "Deletar consultas",
 					"item": [
 						{
-							"name": "/consultas/1",
+							"name": "/consultas/{{consulta_id}}",
 							"request": {
 								"method": "DELETE",
 								"header": [],
 								"url": {
-									"raw": "{{base_url}}/consultas/1",
+									"raw": "{{base_url}}/consultas/{{consulta_id}}",
 									"host": [
 										"{{base_url}}"
 									],
 									"path": [
 										"consultas",
-										"1"
+										"{{consulta_id}}"
 									]
 								}
 							},
 							"response": []
 						},
 						{
-							"name": "/consultas/2",
+							"name": "/consultas/{{consulta_id_2}}",
 							"request": {
 								"method": "DELETE",
 								"header": [],
 								"url": {
-									"raw": "{{base_url}}/consultas/2",
+									"raw": "{{base_url}}/consultas/{{consulta_id_2}}",
 									"host": [
 										"{{base_url}}"
 									],
 									"path": [
 										"consultas",
-										"2"
+										"{{consulta_id_2}}"
 									]
 								}
 							},
@@ -1160,6 +1145,43 @@
 							"response": []
 						}
 					]
+				},
+				{
+					"name": "/autenticacao/sair",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{auth_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/autenticacao/sair",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"autenticacao",
+								"sair"
+							]
+						}
+					},
+					"response": []
 				}
 			],
 			"event": [
@@ -1225,75 +1247,79 @@
 	"variable": [
 		{
 			"key": "base_url",
-			"value": ""
+			"value": "http://localhost:8080"
 		},
 		{
 			"key": "base_graphql_url",
-			"value": ""
+			"value": "http://localhost:8082"
 		},
 		{
 			"key": "auth_token",
-			"value": ""
+			"value": "0"
 		},
 		{
 			"key": "usuario_login_admin",
-			"value": ""
+			"value": "admin"
 		},
 		{
 			"key": "usuario_senha_admin",
-			"value": ""
+			"value": "123456"
 		},
 		{
 			"key": "usuario_login_medico",
-			"value": ""
+			"value": "medico"
 		},
 		{
 			"key": "usuario_senha_medico",
-			"value": ""
+			"value": "medico"
 		},
 		{
 			"key": "usuario_login_enfermeiro",
-			"value": ""
+			"value": "enfermeiro"
 		},
 		{
 			"key": "usuario_senha_enfermeiro",
-			"value": ""
+			"value": "enfermeiro"
 		},
 		{
 			"key": "usuario_login_paciente",
-			"value": ""
+			"value": "paciente"
 		},
 		{
 			"key": "usuario_senha_paciente",
-			"value": ""
+			"value": "paciente"
 		},
 		{
 			"key": "consulta_id",
-			"value": ""
+			"value": "0"
+		},
+		{
+			"key": "consulta_id_2",
+			"value": "0"
 		},
 		{
 			"key": "usuario_medico_id",
-			"value": ""
+			"value": "0"
 		},
 		{
 			"key": "usuario_medico2_id",
-			"value": ""
+			"value": "0"
 		},
 		{
 			"key": "usuario_enfermeiro_id",
-			"value": ""
+			"value": "0"
 		},
 		{
 			"key": "usuario_paciente_id",
-			"value": ""
+			"value": "0"
 		},
 		{
 			"key": "usuario_login_medico2",
-			"value": ""
+			"value": "medico2"
 		},
 		{
 			"key": "usuario_senha_medico2",
-			"value": ""
+			"value": "medico2"
 		}
 	]
 }
